@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>senators</title>
+    <style>
+        table {
+            margin: 0 auto;
+            font-family: verdana, arial, sans-serif;
+            font-size: 17px;
+            color: #333333;
+            border-width: 1px;
+            border-color: #666666;
+            border-collapse: collapse;
+            width: 800px;
+        }
+
+        table th {
+            border-width: 1px;
+            padding: 8px;
+            border-style: solid;
+            border-color: #666666;
+            background-color: #dedede;
+        }
+
+        table td {
+            border-width: 1px;
+            padding: 8px;
+            border-style: solid;
+            border-color: #666666;
+            text-align: center;
+
+            /*background-color: #ffffff;*/
+        }
+        table tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        table tr:nth-child(odd) {
+            background-color: #fff;
+        }
+        #tableBody tr:hover{
+            color: #02b8dd;
+            font-weight: bold;
+        }
+        ul {
+            font-family: Arial, sans-serif;
+            font-size: 18px;
+            color: #333;
+            padding-left: 300px;
+            padding-right:300px;
+            /*background-color: #f0f0f0;*/
+
+        }
+
+        li {
+            margin: 5px 0;
+            color: #333;
+            line-height: 30px;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2); 
+            border-radius: 5px;
+        }
+        li::before {
+            content: "\2022";
+            color: #333;
+            margin-right: 5px; 
+        }
+        li:hover {
+            background-color: #ddd;
+            cursor: pointer;
+        }
+        .mt {
+            margin-top: 20px;
+        }
+
+        .detail {
+            position: fixed;
+            border-radius: 12px;
+            background-color: #fff;
+            top: 25%;
+            left: 7.2%;
+            width: 85.6%;
+            height: 500px;
+            z-index: 999;
+        }
+
+        .mask {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 998;
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+            opacity: 0.5;
+            overflow: hidden;
+        }
+
+        .hide {
+            display: none;
+        }
+
+        .btn {
+            text-align: center;
+            background: #ED171F;
+            display: block;
+            width: 30.4%;
+            margin: 0 auto;
+            font-size: 14px;
+            color: #fff;
+            font-weight: 700;
+            height: 36px;
+            border-radius: 12px;
+            line-height: 36px;
+            border: 1px solid red;
+        }
+
+        .party-table {
+            cursor: pointer;
+        }
+
+        .content {
+            margin-top: 3%;
+            width: 76%;
+            margin-left: 12%;
+            text-align: center
+        }
+
+        label {
+            font-weight: bold;
+        }
+        #options{
+            display: flex;
+            justify-content: center;
+        }
+        .Republican {
+
+            color: red;
+        }
+
+        .Democrat {
+            color: blue;
+        }
+        .Independent{
+            color: green;
+        }
+        #background{
+        background-image: url(capitol.jpg);
+        background-repeat: no-repeat;
+        background-size: cover;
+        background-position: 30% 40%;
+        border-top: 1px solid #666;
+        border-bottom: 1px solid #666;
+        padding: 15vh;
+        }
+    </style>
+</head>
+
+<body onload="getJsonData();">
+    <span id="msg"></span>
+    <div id="background">
+    </div>
+
+    <p style="text-align: center;font-size: 30px">Number of senators by party:</p>
+
+    <ul id="total" style="text-align: center;list-style: none"></ul>
+    <!-- contents will be added by js -->
+
+    <p class="mt" style="text-align: center;font-size: 30px">Senators who have leadership roles:</p>
+
+    <ul id="leader" class="mt" style="text-align: center;list-style: none"></ul>
+    <!-- contents will be added by js -->
+    <div id="options">
+    <select id="party" onchange="displayData();" ></select>
+    <select id="state" onchange="displayData();"></select>
+    <select id="rank" onchange="displayData();"></select>
+    </div>
+    <table class="mt">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Party</th>
+                <th>State</th>
+                <th>Gender</th>
+                <th>Rank</th>
+            </tr>
+        </thead>
+
+        <tbody id="tableBody">
+            <!-- contents will be added by js -->
+        </tbody>
+    </table>
+
+    <div id="mask" class="mask hide"></div>
+
+    <div id="detail" class="detail hide">
+    <!-- details of a senator chosen -->
+        <div id="content" class="content"></div>
+
+        <div style="margin-top:6%">
+            <button id="close" class="btn hand" onclick="closeDetail();">close</button>
+        </div>
+    </div>
+
+    <script>
+
+        let data = null;
+
+        function getById(id) {
+            return document.getElementById(id);
+        }
+
+        function closeDetail() {
+            getById("mask").classList.add("hide");
+            getById("detail").classList.add("hide");
+        }
+
+        function displayDetail(id) {
+
+            let html = '';
+
+            let item = data.objects.find((obj) => obj.person.bioguideid == id);
+            // use the bioguideid
+
+            let name = item.person.firstname + ' ' + item.person.lastname;
+
+            html += '<div><label>Name: </label><span>' + name + '</span></div>';
+            html += '<div><label>Party: </label><span>' + item.party + '</span></div>';
+            html += '<div><label>State: </label><span>' + item.state + '</span></div>';
+            html += '<div><label>Gender: </label><span>' + item.person.gender + '</span></div>';
+            html += '<div><label>Rank: </label><span>' + item.senator_rank_label + '</span></div>';
+            html += '<div><label>Office: </label><span>' + item.extra.address + '</span></div>';
+            html += '<div><label>Date of birth: </label><span>' + item.person.birthday + '</span></div>';
+            html += '<div><label>Start date: </label><span>' + item.startdate + '</span></div>';
+            html += '<div><label>Twitter id: </label><span>' + (item.person.twitterid !== null ? item.person.twitterid : '') + '</span></div>';
+            html += '<div><label>YouTube id: </label><span>' + (item.person.youtubeid !== null ? item.person.youtubeid : '') + '</span></div>';
+            html += '<div><label>Website: </label><span><a href="' + item.website + '" target="_blank">' + item.website + '</a></span></div>';
+            // show the detail from json
+
+            getById("content").innerHTML = html;
+            getById("mask").classList.remove("hide");
+            getById("detail").classList.remove("hide");
+        }
+
+        function displaySelect() {
+            // Make the dropdown box display all options, such as all states
+
+            let partyHtml = '<option value="all" selected>All Parties</option>';
+            let stateHtml = '<option value="all" selected>All States</option>';
+            let rankHtml = '<option value="all" selected>All Ranks</option>';
+
+            data.objects.forEach(function (item) {
+
+                if (partyHtml.indexOf(item.party) < 0) {
+                    partyHtml += '<option value="' + item.party + '">' + item.party + '</option>';
+                }
+                //  If the value is not already in the HTML string
+                if (stateHtml.indexOf(item.state) < 0) {
+                    stateHtml += '<option value="' + item.state + '">' + item.state + '</option>';
+                }
+                if (rankHtml.indexOf(item.senator_rank_label) < 0) {
+                    rankHtml += '<option value="' + item.senator_rank_label + '">' + item.senator_rank_label + '</option>';
+                }
+
+            });
+
+            getById("party").innerHTML = partyHtml;
+            getById("state").innerHTML = stateHtml;
+            getById("rank").innerHTML = rankHtml;
+        }
+
+        function compareFn(a, b) {
+            if (a.party < b.party) {
+                return -1;
+            } 
+            // -1 means that a should come before b 
+            if (a.party > b.party) {
+                return 1;
+            }
+            // 1 means that a should come after b 
+            return 0;
+            // the order relative to each other doesn't matter
+        }
+
+        function displayData() {
+
+            let party = getById('party').value;
+            let state = getById('state').value;
+            let rank = getById('rank').value;
+
+            let tableHtml = '';
+            let totalHtml = '';
+            let leaderHtml = '';
+
+            let totalArr = [];
+            let leaderArr = [];
+
+            let objects = data.objects;
+            objects.sort(compareFn);
+
+            objects.forEach(function (item) {
+
+                if (!!party && party != 'all' && item.party != party) return;
+                // First, it checks if the party exists
+                // Then, it checks if party is not equal to 'all'.
+                // Finally, it checks if the party of the current item does not match the value of the party.
+                // If all these conditions are met,
+                // the return causes the loop to skip processing the current item and move on to the next one.
+                if (!!state && state != 'all' && item.state != state) return;
+                if (!!rank && rank != 'all' && item.senator_rank_label != rank) return;
+
+                let name = item.person.firstname + ' ' + item.person.lastname;
+
+                tableHtml += '<tr class="party-table" onclick="displayDetail(\'' + item.person.bioguideid + '\');">';
+                tableHtml += '<td class="hand" >' + name + '</td>';
+                tableHtml += '<td>' + item.party + '</td>';
+                tableHtml += '<td>' + item.state + '</td>';
+                tableHtml += '<td>' + item.person.gender + '</td>';
+                tableHtml += '<td>' + item.senator_rank_label + '</td>';
+                tableHtml += '</tr>';
+
+                let count = totalArr[item.party];
+                if (!!count) {
+                    totalArr[item.party] = count + 1;
+                } else {
+                    totalArr[item.party] = 1;
+                }
+                // If exists, +1, if not exists, set to 1
+
+                if (item.leadership_title != null) {
+
+                    let li = '<li>' + item.leadership_title + ': <b>' + name + '</b>(' + item.party + ')</li>';
+
+                    let leaderListHtml = leaderArr[item.party];
+                    if (!!leaderListHtml) {
+                        leaderListHtml += li;
+                        leaderArr[item.party] = leaderListHtml;
+                    } else {
+                        leaderArr[item.party] = li;
+                    }
+                }
+                // If exists, add it below and refresh the list, if not set the first leader information
+
+            });
+
+            for (let key in totalArr) {
+                totalHtml += '<li>' + key + ': ' + totalArr[key] + '</li>';
+            }
+
+            for (let key in leaderArr) {
+                leaderHtml += leaderArr[key];
+            }
+
+            getById("total").innerHTML = totalHtml;
+            getById("leader").innerHTML = leaderHtml;
+            getById("tableBody").innerHTML = tableHtml;
+            colorRowsByParty();
+
+        }
+        function colorRowsByParty() {
+            // blue:democrat
+            // green:Independent
+            // red:Republican
+            const tableRows = document.querySelectorAll('.party-table');
+
+            tableRows.forEach((row) => {
+                const partyCell = row.querySelector('td:nth-child(2)'); // Assuming the party cell is in the second column
+                if (partyCell) {
+                    const party = partyCell.textContent.trim();
+                    if (party === 'Democrat') {
+                        row.classList.add('Democrat');
+                    } else if (party === 'Republican') {
+                        row.classList.add('Republican');
+                    } else {
+                        row.classList.add('Independent');
+                    }
+                }
+            });
+        }
+
+            async function getJsonData() {
+                try {
+                    const url = "senators.json";
+                    const promise = await fetch(url);
+
+                    if (!promise.ok) {
+                        throw new Error(
+                            `HTTP error! status: ${promise.status}`
+                        );
+                    }
+                    data = await promise.json();
+
+                    displaySelect();
+                    displayData();
+                    colorRowsByParty(); // Call the function to color the rows.
+
+                } catch (error) {
+                    document.getElementById("msg").innerText = error;
+                }
+            }
+    </script>
+</body>
+
+</html>
